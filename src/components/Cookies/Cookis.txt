@@ -1,0 +1,488 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import Loading from '../Loader/Loader';
+import coverNotFound from '../../images/cover_not_found.jpg';
+import './BookDetails.css';
+import { FaArrowLeft } from 'react-icons/fa';
+
+// The base URL for fetching book details
+const URL = 'https://openlibrary.org/works/';
+
+// Define a type for the book data
+interface MyBookDetails {
+    description: string;
+    title: string;
+    cover_img: string;
+    subject_places: string;
+    subject_times: string;
+    subjects: string;
+}
+
+function BookDetails(): JSX.Element {
+    // Get the book ID from the URL parameters
+    // Define a type for the params object returned by useParams()
+    const { id } = useParams<{ id: string }>();
+    // Define state variables to store the book details and loading state
+    const [loading, setLoading] = useState(false);
+    const [book, setBook] = useState<MyBookDetails | null>(null);
+    // Define a navigate function to programmatically navigate to a new route
+    const navigate = useNavigate();
+
+    // Use the useEffect hook to fetch the book details when the component mounts or the ID changes
+    useEffect(() => {
+        setLoading(true);
+        async function fetchBookDetails(bookId: string) {
+            try {
+                // Make a request to the Open Library API to get the book details
+                const response = await fetch(`${URL}${bookId}.json`);
+                const data = await response.json();
+
+                if (data) {
+                    // Extract the relevant book properties from the API response
+                    const {
+                        description,
+                        title,
+                        covers,
+                    } = data;
+
+                    // Create a new book object with the extracted properties
+                    const newBook: MyBookDetails = {
+                        description: description ? description.value : 'No description found',
+                        title: title,
+                        cover_img: covers ? `https://openlibrary.org/b/id/${covers[0]}-L.jpg` : coverNotFound,
+                        subject_places: '',
+                        subject_times: '',
+                        subjects: ''
+                    };
+
+                    // Update the state with the new book object
+                    setBook(newBook);
+
+                    // Set the cookie value
+                    document.cookie = `book-details-id=${bookId}; domain=.openlibrary.org; secure=true; sameSite=none;`;
+                } else {
+                    // Set the book object to null if the API response is empty
+                    setBook(null);
+                }
+
+                // Set the loading state to false once the book details have been fetched
+                setLoading(false);
+            } catch (error) {
+                console.log(error);
+                setLoading(false);
+            }
+        }
+
+        fetchBookDetails(id);
+    }, [id]);
+
+    // Render a loading indicator while the book details are being fetched
+    if (loading) return <Loading />;
+
+    return (
+        <section className='book-details'>
+            <div className='container'>
+                <button type='button' className='flex flex-c back-btn' onClick={() => navigate('/book')}>
+                    <FaArrowLeft size={22} />
+                    <span className='fs-18 fw-6'>Go Back</span>
+                </button>
+
+                <div className='book-details-content grid'>
+                    <div className='book-details-img'>
+                        <img src={book?.cover_img} alt='cover img' />
+                    </div>
+                    <div className='book-details-info'>
+                        <div className='book-details-item title'>
+                            <span className='fw-6 fs-24'>{book?.title}</span>
+                        </div>
+                        <div className='book-details-item description'>
+                            <span>{book?.description}</span>
+                        </div>
+                        <div className='book-details-item'>
+                            <span className='fw-6'>Subject Places: </span>
+                            <span className='text-italic'>{book?.subject_places}</span>
+                        </div>
+                        <div className='book-details-item'>
+                            <span className='fw-6'>Subjects: </span>
+                            <span>{book?.subjects}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+
+LOGIN form 
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+// import { readUserCredentialsFromFile, writeUserCredentialsToFile } from './fileUtils';
+
+function Login(props: { onLogin: (username: string) => void }): JSX.Element {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleSignIn = (): void => {
+        if (typeof username !== 'string' || typeof parseInt(password) !== 'number') {
+            alert('Invalid username or password!');
+        } else {
+            const userCredentials = readUserCredentialsFromFile('userCredentials.json');
+            const isCredentialsValid = checkCredentials(userCredentials, username, password);
+            if (isCredentialsValid) {
+                // Call the onLogin function passed in as a prop if successful
+                props.onLogin(username);
+            } else {
+                alert('Invalid username or password!');
+            }
+        }
+    };
+
+    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        setUsername(e.target.value);
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        setPassword(e.target.value);
+    };
+
+    return (
+        <div className="login-container">
+            <div className="login-body">
+                <h2>Welcome to BookHub</h2>
+                <div className="form-group">
+                    <label htmlFor="username">Username:</label>
+                    <input
+                        type="text"
+                        id="username"
+                        value={username}
+                        onChange={handleUsernameChange}
+                        className="form-control"
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="password">Password:</label>
+                    <input
+                        type="password"
+                        id="password"
+                        value={password}
+                        onChange={handlePasswordChange}
+                        className="form-control"
+                    />
+                </div>
+                <button type="button" className="btn btn-primary" onClick={handleSignIn}>
+                    Sign In
+                </button>
+                <div className="register-link">
+                    <p>
+                        Not a member yet?{' '}
+                        <Link to="register" target={'_blank'}>
+                            Register
+                        </Link>
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function checkCredentials(
+    userCredentials: Record<string, number>,
+    username: string,
+    password: string
+): boolean {
+    if (userCredentials[username] === parseInt(password)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// Create the userCredentials file if it doesn't exist already
+writeUserCredentialsToFile('userCredentials.json', {});
+
+export default Login;
+
+
+////////////////
+login scss
+// h2 {
+//     margin-top: 35px;
+//     margin-left: 100px;
+//     font-size: 3rem;
+
+// }
+
+// .monkey-pic {
+//     margin-left: 15%;
+//     margin-right: 20px;
+//     position: absolute;
+//     top: 42%;
+//     right: 50px;
+//     transform: translateY(-50%);
+
+//     img {
+//         width: 30%;
+//         height: 35%;
+//     }
+// }
+
+// .login-body {
+//     background-color: #decfcf;
+//     border-radius: 20px;
+//     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+//     padding: 20px;
+//     position: absolute;
+//     top: 50%;
+//     right: 70px;
+//     transform: translateY(-50%);
+//     width: 400px;
+// }
+
+// .form-group {
+//     label {
+//         display: block;
+//         margin-bottom: 1rem;
+//     }
+
+//     input[type="text"],
+//     input[type="password"] {
+//         display: block;
+//         width: 50%;
+//         padding: 0.75rem;
+//         margin-bottom: 1rem;
+//         border: 1px solid #ccc;
+//         border-radius: 2rem;
+//         // font-size: 1rem;
+//         line-height: 1.5;
+//         color: #495057;
+//         background-color: #fff;
+//         background-clip: padding-box;
+//         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+//         //addfocusstyles&:focus ;
+//         -webkit-border-radius: 2rem;
+//         -moz-border-radius: 2rem;
+//         -ms-border-radius: 2rem;
+//         -o-border-radius: 2rem;
+
+//         &:focus {
+//             color: #495057;
+//             background-color: #fff;
+//             border-color: #80bdff;
+//             outline: 0;
+//             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+//         }
+
+//         // add hover styles
+//         &:hover {
+//             color: #495057;
+//             background-color: #f5f5f5;
+//             border-color: #8b8b8b;
+//         }
+
+//         // add active styles
+//         &:active {
+//             color: #495057;
+//             background-color: #fff;
+//             border-color: #fff;
+//         }
+//     }
+// }
+
+// // Media query for screens smaller than or equal to 768px
+// @media screen and (max-width: 768px) {
+//     h2 {
+//         font-size: 2.8rem;
+//         margin-top: 50px;
+//         margin-left: 14%;
+
+//         margin-right: 20px;
+//     }
+
+//     .monkey-pic {
+//         right: 50px;
+//         margin-top: 3%;
+//     }
+
+//     .login-body {
+//         right: 75px;
+//         width: 340px;
+//         margin-top: 50px;
+//         margin-bottom: 50px;
+//     }
+
+//     .form-group {
+
+//         input[type="text"],
+//         input[type="password"] {
+//             width: 100%;
+//             margin-bottom: 20px;
+//         }
+//     }
+// }
+
+
+
+
+// // Media query for screens larger than or equal to 768px
+// @media screen and (min-width: 768px) {
+//     h2 {
+//         font-size: 3.5rem;
+//         margin-left: 125px;
+//     }
+
+//     .monkey-pic {
+//         right: 30px;
+//     }
+
+//     .login-body {
+//         right: 50px;
+//         width: 400px;
+//     }
+
+//     .form-group {
+
+//         input[type="text"],
+//         input[type="password"] {
+//             width: 50%;
+//         }
+//     }
+// }
+wishlist button<div className="book-item-info-item wishlist-btn">
+                        <button
+                            className="btn btn-wishlist"
+                            onClick={(event) => {
+                                event.preventDefault();
+                                book.onAddToWishlist(book.id);
+                                console.log('handle wishlist button');
+
+                            }}
+                        >
+
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-bookmark-heart" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 4.41c1.387-1.425 4.854 1.07 0 4.277C3.146 5.48 6.613 2.986 8 4.412z" />
+                                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z" />
+                            </svg>
+                        </button>
+                    </div>
+///////////////contextimport React, { createContext, useState, useCallback, useEffect, useContext } from "react";
+import Navbar from "./components/Navbar/Navbar";
+import BookList from "./components/BookList/BookList";
+
+interface Book {
+    id: string;
+    key: string;
+    author: string[];
+    cover_id: number,
+    edition_count: number;
+    first_publish_year: number;
+    title: string;
+}
+
+const URL = "https://openlibrary.org/search.json?title=";
+
+export const AppContext = createContext<{
+    loading: boolean;
+    books: Book[];
+    setSearchTerm: (searchTerm: string) => void;
+    resultTitle: string;
+    setResultTitle: (resultTitle: string) => void;
+}>({
+    loading: true,
+    books: [],
+    setSearchTerm: () => { },
+    resultTitle: "",
+    setResultTitle: () => { },
+});
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+
+    const [searchTerm, setSearchTerm] = useState<string>("the lost world");
+    const [books, setBooks] = useState<Book[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [resultTitle, setResultTitle] = useState<string>("");
+
+    const fetchBooks = useCallback(async () => {
+        setLoading(true);
+
+        try {
+            const response = await fetch(`${URL}${searchTerm}`);
+            const data = await response.json();
+
+            const docs = data.docs || [];
+            console.log(docs);
+
+            if (docs.length > 0) {
+                const newBooks = docs.slice(0, 20).map((bookSingle: any) => {
+                    const {
+                        key,
+                        author_name,
+                        cover_id,
+                        edition_count,
+                        first_publish_year,
+                        title,
+                    } = bookSingle;
+
+                    return {
+                        key: key,
+                        author_name: author_name,
+                        cover_id: cover_id,
+                        edition_count: edition_count,
+                        first_publish_year: first_publish_year,
+                        title: title,
+                    };
+                });
+
+                setBooks(newBooks);
+
+                if (newBooks.length > 1) {
+                    setResultTitle("Your Search Result");
+                } else {
+                    setResultTitle("No Search Result Found!");
+                }
+            } else {
+                setBooks([]);
+                setResultTitle("No Search Result Found!");
+            }
+
+            setLoading(false);
+        } catch (error) {
+            console.log(error);
+            setLoading(false);
+        }
+    }, [searchTerm]);
+
+    useEffect(() => {
+        fetchBooks();
+    }, [searchTerm, fetchBooks]);
+
+    return (
+        <AppContext.Provider
+            value={{ loading, books, setSearchTerm, resultTitle, setResultTitle }}
+        >
+            {children}
+        </AppContext.Provider>
+    );
+};
+
+export const useGlobalContext = () => {
+    return useContext(AppContext);
+};
+
+function ParentComponent() {
+    const [showFavorites, setShowFavorites] = useState(false);
+
+    return (
+        <>
+            <Navbar
+                isLoggedIn={true}
+                user="John Doe"
+                showFavorites={showFavorites}
+                setShowFavorites={setShowFavorites}
+            />
+            <BookList onAddToWishlist={() => { }} />
+        </>
+    );
+}
+
+export default ParentComponent;

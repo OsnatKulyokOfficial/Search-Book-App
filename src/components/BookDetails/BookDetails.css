@@ -1,0 +1,124 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,600&display=swap");
+@media screen and (min-width: 768px) {
+  .book-details-content {
+    grid-template-columns: 40% 60%;
+    gap: 0;
+  }
+  .book-details-img {
+    padding: 0 6rem 0 2rem;
+  }
+  .book-details-img img {
+    max-width: 100%;
+  }
+}
+.book-details {
+  padding: 6rem 0;
+}
+
+.back-btn {
+  margin-top: 100px;
+  margin-left: 20px;
+  margin-bottom: 2.6rem;
+  transition: var(--transition);
+  -webkit-transition: var(--transition);
+  -moz-transition: var(--transition);
+  -ms-transition: var(--transition);
+  -o-transition: var(--transition);
+}
+.back-btn:hover {
+  color: #8d27ae;
+}
+.back-btn span {
+  margin-left: 1rem;
+}
+
+.book-details-content {
+  gap: 4rem;
+}
+
+.book-details-img {
+  max-height: 600px;
+  overflow: hidden;
+  width: 100%;
+}
+.book-details-img img {
+  margin: 0 auto;
+  margin-top: 30px;
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.book-details-item {
+  margin-bottom: 1.4rem;
+}
+.book-details-item.description {
+  opacity: 0.8;
+}
+
+.book-details-info {
+  overflow-y: scroll;
+  max-height: 600px;
+  padding: 1.4rem;
+}
+.book-details-info::-webkit-scrollbar {
+  width: 8px;
+}
+.book-details-info::-webkit-scrollbar-track {
+  border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -ms-border-radius: 8px;
+  -o-border-radius: 8px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+.book-details-info::-webkit-scrollbar-thumb {
+  background-color: #8d27ae;
+  outline: -1px solid slategray;
+  border: radius 8px;
+}
+
+img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
+/* Styles for screens smaller than 720px */
+@media (max-width: 720px) {
+  .image {
+    width: 20%;
+  }
+}
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  grid-gap: 10px;
+  justify-items: center;
+  align-items: center;
+  height: 250px;
+  width: 600px;
+  background-color: lightgray;
+  margin-left: 7%;
+  padding: 15px 25px;
+}
+
+.grid-item {
+  background-color: white;
+  border: 1px solid black;
+  font-size: 30px;
+  text-align: center;
+  width: 60px;
+  height: 95px;
+}
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}/*# sourceMappingURL=BookDetails.css.map */
